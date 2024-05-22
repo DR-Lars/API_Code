@@ -1,8 +1,21 @@
 var mysql = require("mysql");
+const dotenv = require("dotenv");
 const express = require("express");
 const app = express();
-const port = 8080;
+dotenv.config();
 
+var con = mysql.createConnection({
+  host: process.env.MYSQL_HOST,
+  user: process.env.MYSQL_USER,
+  password: process.env.MYSQL_PASS,
+});
+
+con.connect(function (err) {
+  if (err) throw err;
+  console.log("Connected!");
+});
+
+const port = process.env.PORT;
 app.listen(port, () =>
   console.log(`API is running on http://localhost:${port}`)
 );
