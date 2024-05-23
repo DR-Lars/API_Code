@@ -2,7 +2,7 @@ FROM node:latest
 
 WORKDIR /app
 
-Copy . .
+COPY . .
 RUN npm install
 RUN npm install dotenv
 
