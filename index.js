@@ -1,18 +1,13 @@
-var mysql = require("mysql");
+var mysql = require("mysql2");
 const dotenv = require("dotenv");
 const express = require("express");
 const app = express();
 dotenv.config();
 
-var con = mysql.createConnection({
+var con = mysql.createPool({
   host: process.env.MYSQL_HOST,
   user: process.env.MYSQL_USER,
   password: process.env.MYSQL_PASS,
-});
-
-con.connect(function (err) {
-  if (err) throw err;
-  console.log("Connected!");
 });
 
 const port = process.env.PORT;
@@ -22,31 +17,67 @@ app.listen(port, () =>
 
 app.use(express.json());
 
-app.get("/station", (req, res) => {
-  res.status(200).send({
-    idWeatherStation: "4",
-    Temperature: 22,
-    Humidity: 48,
-    Moisture: 28,
-    TimeStamp: "2024-05-22 00:16:25",
-    Location: 1,
-  });
+app.get("/measurement/station=:stn", (req, res) => {
+  const { stn } = req.params;
+
+  con.query(
+    `SELECT * FROM weatherdb.Measurement WHERE Station_idStation="${stn}";`,
+    (err, result, field) => {
+      if (err) throw err;
+      res.status(200).send(result);
+    }
+  );
 });
 
-app.post("/station/:id", (req, res) => {
-  const { id } = req.params.id;
+app.get("/measurement/id=:id", (req, res) => {
+  const { id } = req.params;
+
+  con.query(
+    `SELECT * FROM weatherdb.Measurement WHERE idMeasurement=${id};`,
+    (err, result, field) => {
+      if (err) throw err;
+      res.status(200).send(result);
+    }
+  );
+});
+
+app.post("/measurement", (req, res) => {
+  const { id } = req.params;
   const { station } = req.body;
+  var resultId = 0;
 
   if (station) {
-    res.status(418).send({ message: "Please attach a JSON" });
+    res.status(418).send({ message: "Please attach a valid JSON" });
   } else {
-    res.status(200).send({
-      idWeatherStation: req.body.idWeatherStation,
-      Temperature: req.body.Temperature,
-      Humidity: req.body.Humidity,
-      Moisture: req.body.Moisture,
-      TimeStamp: req.body.TimeStamp,
-      Location: req.body.Location,
-    });
+    con.query(
+      `INSERT INTO weatherdb.Measurement (temperature, humidity, moisture, Station_idStation) VALUES ('${req.body.temperature}', '${req.body.humidity}', '${req.body.moisture}', '${req.body.location}');`,
+      (err, result, field) => {
+        if (err) throw err;
+        resultId = result.insertId;
+      }
+    );
+
+    var millisecondsToWait = 490;
+    setTimeout(function () {
+      con.query(
+        `SELECT * FROM weatherdb.Measurement WHERE idMeasurement=${resultId};`,
+        (err, result, field) => {
+          if (err) throw err;
+          res.status(200).send(result);
+        }
+      );
+    }, millisecondsToWait);
   }
+});
+
+app.get("/station/id=:id", (req, res) => {  
+  const { id } = req.params;
+
+  con.query(
+    `SELECT * FROM weatherdb.Station WHERE idStation="${id}";`,
+    (err, result, field) => {
+      if (err) throw err;
+      res.status(200).send(result);
+    }
+  );
 });
