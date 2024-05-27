@@ -70,7 +70,7 @@ app.post("/measurement", (req, res) => {
   }
 });
 
-app.get("/station/id=:id", (req, res) => {  
+app.get("/station/id=:id", (req, res) => {
   const { id } = req.params;
 
   con.query(
@@ -80,4 +80,16 @@ app.get("/station/id=:id", (req, res) => {
       res.status(200).send(result);
     }
   );
+});
+
+app.get("/latest-measurement/station=:stn", (req, res) => {
+  const { station } = req.body;
+
+  const sql = "SELECT * FROM measurements ORDER BY timeStamp DESC LIMIT 1";
+  db.query(sql, (err, result) => {
+    if (err) {
+      res.status(500).send(err);
+    }
+    res.send(result[0]);
+  });
 });
