@@ -2,7 +2,7 @@ var mysql = require("mysql2");
 const dotenv = require("dotenv");
 const express = require("express");
 const app = express();
-const cors = require('cors');
+const cors = require("cors");
 dotenv.config();
 
 var con = mysql.createPool({
@@ -53,7 +53,7 @@ app.post("/measurement", (req, res) => {
     res.status(418).send({ message: "Please attach a valid JSON" });
   } else {
     con.query(
-      `INSERT INTO weatherdb.Measurement (temperature, humidity, moisture, Station_idStation) VALUES ('${req.body.temperature}', '${req.body.humidity}', '${req.body.moisture}', '${req.body.location}');`,
+      `INSERT INTO weatherdb.Measurement (temperature, humidity, moisture, particle_size1, particle_size2d5, particle_size4, particle_size10, organic_compounds, nitrogen, Station_idStation) VALUES ("${req.body.temperature}", "${req.body.humidity}", "${req.body.moisture}", "${req.body.particle_size_1}", "${req.body.particle_size_2_5}", "${req.body.particle_size_4}", "${req.body.particle_size_10}", "${req.body.organic_compounds}", "${req.body.nitrogen}",  "${req.body.location}");`,
       (err, result, field) => {
         if (err) throw err;
         resultId = result.insertId;
@@ -85,7 +85,7 @@ app.get("/station/id=:id", (req, res) => {
   );
 });
 
-app.get("/latest-measurement/station=:stn", (req, res) => {
+app.get("/latest_measurement/station=:stn", (req, res) => {
   const { stn } = req.params;
 
   const sql = `SELECT * FROM weatherdb.Measurement WHERE Station_idStation="${stn}" ORDER BY timeStamp DESC LIMIT 1`;
