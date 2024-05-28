@@ -2,6 +2,7 @@ var mysql = require("mysql2");
 const dotenv = require("dotenv");
 const express = require("express");
 const app = express();
+const cors = require('cors');
 dotenv.config();
 
 var con = mysql.createPool({
@@ -16,6 +17,8 @@ app.listen(port, () =>
 );
 
 app.use(express.json());
+
+app.use(cors());
 
 app.get("/measurement/station=:stn", (req, res) => {
   const { stn } = req.params;
@@ -83,10 +86,10 @@ app.get("/station/id=:id", (req, res) => {
 });
 
 app.get("/latest-measurement/station=:stn", (req, res) => {
-  const { station } = req.body;
+  const { stn } = req.params;
 
-  const sql = "SELECT * FROM measurements ORDER BY timeStamp DESC LIMIT 1";
-  db.query(sql, (err, result) => {
+  const sql = `SELECT * FROM weatherdb.Measurement WHERE Station_idStation="${stn}" ORDER BY timeStamp DESC LIMIT 1`;
+  con.query(sql, (err, result) => {
     if (err) {
       res.status(500).send(err);
     }
